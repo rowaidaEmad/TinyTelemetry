@@ -44,7 +44,7 @@ logs/              → Folder where CSV log files and test outputs are stored
   - Saves structured CSV output and prints test summary
 
 - **Automated test scripts:**
-  - `run_baseline.sh` → normal condition
+  - `baseline.sh` → normal condition
   - `delay.sh` → adds 100 ms delay and ±10 ms jitter
   - `loss.sh` → simulates 5% random packet loss
 

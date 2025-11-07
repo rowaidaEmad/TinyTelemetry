@@ -6,17 +6,17 @@ import sys
 from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT
 
 # Configurable defaults
-DEFAULT_TOTAL_DURATION = 180  # total test duration = 60s * 3 intervals
+DEFAULT_INTERVAL_DURATION = 60  # total test duration = 60s
 DEFAULT_INTERVALS = [1, 5, 30]
 
 # Parse command-line arguments
 if len(sys.argv) > 1:
     try:
-        total_duration = int(sys.argv[1])
+        Interval_Duration = int(sys.argv[1])
     except ValueError:
-        total_duration = DEFAULT_TOTAL_DURATION
+        Interval_Duration = DEFAULT_INTERVAL_DURATION
 else:
-    total_duration = DEFAULT_TOTAL_DURATION
+    Interval_Duration = DEFAULT_INTERVAL_DURATION
 
 if len(sys.argv) > 2:
     try:
@@ -63,12 +63,12 @@ else:
         print("sensor_values.txt is empty.")
         running = False
     else:
-        print(f"Starting test for intervals {intervals} (60s each)...")
+        print(f"Starting test for intervals {intervals} ({Interval_Duration}s each)...")
 
         for interval in intervals:
-            print(f"\n--- Running {interval}s interval for 60 seconds ---")
+            print(f"\n--- Running {interval}s interval for {Interval_Duration} seconds ---")
             start_interval = time.time()
-            while time.time() - start_interval < 60:
+            while time.time() - start_interval < Interval_Duration:
                 line = lines[(seq_num - 1) % len(lines)]
                 values = [v.strip() for v in line.split(",") if v.strip()]
                 batch_count = len(values)
@@ -76,8 +76,7 @@ else:
 
                 header = build_header(device_id=1, batch_count=batch_count,
                                       seq_num=seq_num, msg_type=MSG_DATA)
-                filler = b"\x00" * (MAX_BYTES - len(header) - len(payload))
-                packet = header + payload + filler
+                packet = header + payload
 
                 client_socket.sendto(packet, SERVER_ADDR)
                 print(f"Sent DATA seq={seq_num}, interval={interval}s, readings={values}")

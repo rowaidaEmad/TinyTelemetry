@@ -23,8 +23,8 @@ os.makedirs(LOG_DIR, exist_ok=True)
 CSV_FILENAME = os.path.join(LOG_DIR, "iot_device_data.csv")
 CSV_HEADERS = [
     "server_timestamp", "device_id", "batch_count", "sequence_number",
-    "device_timestamp", "message_type", "milliseconds", "payload",
-    "client_address", "delay_seconds", "duplicate_flag", "gap_flag"
+    "device_timestamp", "message_type", "payload",
+    "client_address", "delay_seconds", "duplicate_flag", "gap_flag", "packet_size"
 ]
 
 def init_csv_file():
@@ -65,17 +65,17 @@ def save_to_csv(data_dict):
                 data_dict['seq'],
                 data_dict['timestamp'],
                 msg_type_str,
-                data_dict['milliseconds'],
                 data_dict['payload'],
                 data_dict['client_address'],
                 data_dict['delay_seconds'],
                 data_dict['duplicate_flag'],
-                data_dict['gap_flag']
+                data_dict['gap_flag'],
+                data_dict['packet_size']
             ]
             writer.writerow(row)
-            print(f"✓ Data saved (seq={data_dict['seq']})")
+            print(f" Data saved (seq={data_dict['seq']})")
     except Exception as e:
-        print(f"✗ Error writing to CSV: {e}")
+        print(f" Error writing to CSV: {e}")
 
 # --- Initialize ---
 init_csv_file()
@@ -87,7 +87,7 @@ all_sequences = {}
 try:
     while True:
         data, addr = server_socket.recvfrom(MAX_BYTES)
-        server_receive_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        server_receive_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 
         try:
             header = parse_header(data)
@@ -95,7 +95,7 @@ try:
             print("Header error:", e)
             continue
 
-        payload = data[HEADER_SIZE:].rstrip(b'\x00').decode('utf-8', errors='ignore')
+        payload = data[HEADER_SIZE:].decode('utf-8', errors='ignore')
 
         device_id = header['device_id']
         seq = header['seq']
@@ -123,28 +123,28 @@ try:
         all_sequences[device_id].add(seq)
 
         csv_data = {
-            'server_timestamp': server_receive_time,
+            'server_timestamp': f" {server_receive_time}",
             'device_id': header['device_id'],
             'batch_count': header['batch_count'],
             'seq': header['seq'],
-            'timestamp': f"{time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(header['timestamp']))}.{header['milliseconds']:03d}",
+            'timestamp': f" {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(header['timestamp']))}.{header['milliseconds']:03d}",
             'msg_type': header['msg_type'],
-            'milliseconds': header['milliseconds'],
             'payload': payload,
             'client_address': f"{addr[0]}:{addr[1]}",
             'delay_seconds': delay,
             'duplicate_flag': duplicate_flag,
-            'gap_flag': gap_flag
+            'gap_flag': gap_flag,
+            'packet_size': len(data)
         }
 
         # --- Message handling ---
         if header['msg_type'] == MSG_DATA:
             save_to_csv(csv_data)
-            print(f"→ DATA message received (seq={seq}, delay={delay}s)")
+            print(f" -> DATA message received (seq={seq}, delay={delay}s)")
         elif header['msg_type'] == MSG_INIT:
-            print(f"→ INIT message from Device {device_id}")
+            print(f" -> INIT message from Device {device_id}")
         elif header['msg_type'] == HEART_BEAT:
-            print(f"→ HEARTBEAT from Device {device_id} at {time.ctime(header['timestamp'])}")
+            print(f" -> HEARTBEAT from Device {device_id} at {time.ctime(header['timestamp'])}")
         else:
             print("Unknown message type.")
 

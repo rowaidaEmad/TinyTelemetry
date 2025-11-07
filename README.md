@@ -95,7 +95,7 @@ Results saved in `logs/loss_5percent.csv`.
 
 ## Windows (Using Git Bash)
 ### 1. Baseline Test (no delay/loss)
-# Run Git Bash as Administrator, then:
+## Run Git Bash as Administrator, then:
 ```bash
 ./baseline.sh
 ```

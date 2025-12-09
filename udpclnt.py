@@ -3,10 +3,10 @@ import threading
 import time
 import os
 import sys
-from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT
+from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code
 
 # Configurable defaults
-DEFAULT_TOTAL_DURATION = 180  # total test duration = 60s * 3 intervals
+DEFAULT_TOTAL_DURATION = 20  # total test duration = 60s * 3 intervals
 DEFAULT_INTERVALS = [1, 5, 30]
 
 # Parse command-line arguments
@@ -26,6 +26,13 @@ if len(sys.argv) > 2:
 else:
     intervals = DEFAULT_INTERVALS
 
+if len(sys.argv) > 3:
+    unit = sys.argv[3]
+else:
+    unit = "celsius"
+
+unit_code = unit_to_code(unit)
+
 SERVER_ADDR = ('localhost', 12000)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -33,16 +40,17 @@ seq_num = 1
 running = True
 
 # Send INIT message once
-header = build_header(device_id=1, batch_count=0, seq_num=seq_num, msg_type=MSG_INIT)
+header = build_header(device_id=1, batch_count=unit_code, seq_num=seq_num, msg_type=MSG_INIT)
 client_socket.sendto(header, SERVER_ADDR)
-print(f"Sent INIT (seq={seq_num})")
+print(f"Sent INIT (seq={seq_num}, unit={unit})")
 seq_num += 1
+time.sleep(0.1)  # Ensure INIT is sent first
 
 def send_heartbeat():
-    """Send heartbeat messages every 10 seconds."""
+    """Send heartbeat messages every 3 seconds."""
     global seq_num, running
     while running:
-        time.sleep(10)
+        time.sleep(3)
         header = build_header(device_id=1, batch_count=0, seq_num=seq_num, msg_type=HEART_BEAT)
         client_socket.sendto(header, SERVER_ADDR)
         print(f"Sent HEARTBEAT (seq={seq_num})")
@@ -71,17 +79,20 @@ else:
             while time.time() - start_interval < 60:
                 line = lines[(seq_num - 1) % len(lines)]
                 values = [v.strip() for v in line.split(",") if v.strip()]
-                batch_count = len(values)
-                payload = ",".join(values).encode("utf-8")
+                while values:
+                    chunk = values[:10]
+                    batch_count = len(chunk)
+                    payload = ",".join(chunk).encode("utf-8")
 
-                header = build_header(device_id=1, batch_count=batch_count,
-                                      seq_num=seq_num, msg_type=MSG_DATA)
-                filler = b"\x00" * (MAX_BYTES - len(header) - len(payload))
-                packet = header + payload + filler
+                    header = build_header(device_id=1, batch_count=batch_count,
+                                          seq_num=seq_num, msg_type=MSG_DATA)
+                    filler = b"\x00" * (MAX_BYTES - len(header) - len(payload))
+                    packet = header + payload + filler
 
-                client_socket.sendto(packet, SERVER_ADDR)
-                print(f"Sent DATA seq={seq_num}, interval={interval}s, readings={values}")
-                seq_num += 1
+                    client_socket.sendto(packet, SERVER_ADDR)
+                    print(f"Sent DATA seq={seq_num}, interval={interval}s, readings={chunk}")
+                    seq_num += 1
+                    values = values[10:]
                 time.sleep(interval)
 
 print("Test finished. Closing client...")

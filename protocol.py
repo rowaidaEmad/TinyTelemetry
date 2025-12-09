@@ -10,6 +10,37 @@ MSG_INIT = 0
 MSG_DATA = 1
 HEART_BEAT = 2
 
+# Units mapping
+UNITS = {
+    "celsius": 0,
+    "fahrenheit": 1,
+    "kelvin": 2,
+    "percent": 3,
+    "volts": 4,
+    "amps": 5,
+    "watts": 6,
+    "meters": 7,
+    "liters": 8,
+    "grams": 9,
+    "pascal": 10,
+    "hertz": 11,
+    "lux": 12,
+    "db": 13,
+    "ppm": 14,
+    "unknown": 15
+}
+
+def unit_to_code(unit):
+    """Convert unit name to code."""
+    return UNITS.get(unit.lower(), 15)  # default to unknown
+
+def code_to_unit(code):
+    """Convert code to unit name."""
+    for name, c in UNITS.items():
+        if c == code:
+            return name
+    return "unknown"
+
 
 def build_header(device_id, batch_count, seq_num, msg_type):
     """

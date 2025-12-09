@@ -4,7 +4,7 @@ import csv
 import os
 import sys
 from datetime import datetime
-from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT
+from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit
 
 # --- Real-time logging ---
 sys.stdout.reconfigure(line_buffering=True)
@@ -22,10 +22,10 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 CSV_FILENAME = os.path.join(LOG_DIR, "iot_device_data.csv")
 CSV_HEADERS = [
-    "server_timestamp", "device_id", "batch_count", "sequence_number",
+    "server_timestamp", "device_id", "unit", "sequence_number",
     "device_timestamp", "message_type", "milliseconds", "payload",
     "client_address", "delay_seconds", "duplicate_flag", "gap_flag"
-]
+]    
 
 def init_csv_file():
     """Initialize CSV file with headers if it doesn't exist or is empty."""
@@ -61,7 +61,7 @@ def save_to_csv(data_dict):
             row = [
                 data_dict['server_timestamp'],
                 data_dict['device_id'],
-                data_dict['batch_count'],
+                code_to_unit(data_dict['batch_count']) if msg_type == MSG_INIT else (data_dict['batch_count'] if msg_type == MSG_DATA else ""),
                 data_dict['seq'],
                 data_dict['timestamp'],
                 msg_type_str,
@@ -142,9 +142,12 @@ try:
             save_to_csv(csv_data)
             print(f"→ DATA message received (seq={seq}, delay={delay}s)")
         elif header['msg_type'] == MSG_INIT:
-            print(f"→ INIT message from Device {device_id}")
+            unit = code_to_unit(header['batch_count'])
+            print(f"→ INIT message from Device {device_id} (unit={unit})")
+            save_to_csv(csv_data)
         elif header['msg_type'] == HEART_BEAT:
             print(f"→ HEARTBEAT from Device {device_id} at {time.ctime(header['timestamp'])}")
+            save_to_csv(csv_data)
         else:
             print("Unknown message type.")
 

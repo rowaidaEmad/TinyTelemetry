@@ -17,16 +17,16 @@ if len(sys.argv) > 1:
 else:
     Interval_Duration = DEFAULT_INTERVAL_DURATION
 
-# We expect exactly 3 arguments Interval_Duration, intervals_csv, device_id
-if len(sys.argv) != 4:
-    print("Usage: python udpclnt.py <Interval_Duration_seconds> <intervals_csv> <device_id>")
-    print("Example: python udpclnt.py 60 \"1,5,30\" 1")
+# 4 arguments: Interval_Duration, intervals_csv, device_id, measuring_unit
+if len(sys.argv) != 5:
+    print("Usage: python udpclnt.py <Interval_Duration_seconds> <intervals_csv> <device_id> <measuring_unit>")
+    print("ex: python udpclnt.py 60 \"1,5,30\" 1 Temp_C")
     sys.exit(1)
 
 try:
     Interval_Duration = int(sys.argv[1])
 except ValueError:
-    print("Error: Interval_Duration must be an integer (seconds).")
+    print("error: Interval_Duration must be an integer (seconds).")
     sys.exit(1)
 
 try:
@@ -34,16 +34,22 @@ try:
     if not intervals:
         raise ValueError
 except ValueError:
-    print("Error: intervals_csv must be a comma-separated list of integers, e.g. \"1,5,30\".")
+    print("error: intervals_csv must be a comma-separated list of integers, ex: \"1,5,30\".")
     sys.exit(1)
 
 try:
     device_id = int(sys.argv[3])
 except ValueError:
-    print("Error: device_id must be an integer.")
+    print("error: device_id must be an integer.")
     sys.exit(1)
 
-print(f"Configured Interval_Duration={Interval_Duration}s, intervals={intervals}, device_id={device_id}")
+measuring_unit = sys.argv[4].strip()
+if not measuring_unit:
+    print("error: measuring_unit must be a non-empty string (ex: temp_C).")
+    sys.exit(1)
+
+print(f"Configured Interval_Duration={Interval_Duration}s, intervals={intervals}, device_id={device_id}, unit={measuring_unit}")
+
 
 
 SERVER_ADDR = ('localhost', 12000)
@@ -53,10 +59,15 @@ seq_num = 1
 running = True
 
 # Send INIT message once
+init_payload = measuring_unit.encode("utf-8")
+
 header = build_header(device_id=device_id, batch_count=0, seq_num=seq_num, msg_type=MSG_INIT)
-client_socket.sendto(header, SERVER_ADDR)
-print(f"Sent INIT (device_id={device_id}, seq={seq_num})")
+
+init_packet = header + init_payload
+client_socket.sendto(init_packet, SERVER_ADDR)
+print(f"Sent INIT (device_id={device_id}, seq={seq_num}, unit={measuring_unit})")
 seq_num += 1
+
 
 def send_heartbeat():
     """Send heartbeat messages every 10 seconds."""

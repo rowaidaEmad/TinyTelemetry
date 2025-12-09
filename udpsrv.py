@@ -22,7 +22,7 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 CSV_FILENAME = os.path.join(LOG_DIR, "iot_device_data.csv")
 CSV_HEADERS = [
-    "server_timestamp", "device_id", "batch_count", "sequence_number",
+    "server_timestamp", "unit","device_id", "batch_count", "sequence_number",
     "device_timestamp", "message_type", "payload",
     "client_address", "delay_seconds", "duplicate_flag", "gap_flag", "packet_size"
 ]
@@ -60,6 +60,7 @@ def save_to_csv(data_dict):
 
             row = [
                 data_dict['server_timestamp'],
+                data_dict['unit'],  
                 data_dict['device_id'],
                 data_dict['batch_count'],
                 data_dict['seq'],
@@ -83,6 +84,7 @@ device_state = {}
 received_count = 0
 duplicate_count = 0
 all_sequences = {}
+device_units = {}
 
 try:
     while True:
@@ -121,9 +123,10 @@ try:
         if seq in all_sequences[device_id]:
             duplicate_count += 1
         all_sequences[device_id].add(seq)
-
+        unit = device_units.get(device_id, "")  # empty if unknown
         csv_data = {
             'server_timestamp': f" {server_receive_time}",
+            'unit': unit,
             'device_id': header['device_id'],
             'batch_count': header['batch_count'],
             'seq': header['seq'],
@@ -142,7 +145,9 @@ try:
             save_to_csv(csv_data)
             print(f" -> DATA message received (seq={seq}, delay={delay}s)")
         elif header['msg_type'] == MSG_INIT:
-            print(f" -> INIT message from Device {device_id}")
+            unit = payload.strip()
+            device_units[device_id] = unit
+            print(f" -> INIT message from Device {device_id}, unit={unit}")
         elif header['msg_type'] == HEART_BEAT:
             print(f" -> HEARTBEAT from Device {device_id} at {time.ctime(header['timestamp'])}")
         else:

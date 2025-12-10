@@ -1,0 +1,326 @@
+UDP Server running on port 12000 (max 200 bytes)
+Created new CSV file with headers: logs\iot_device_data.csv
+ -> INIT message from Device 1 (unit=celsius)
+ Data saved (seq=1)
+ -> INIT message from Device 2 (unit=fahrenheit)
+ Data saved (seq=1)
+ -> INIT message from Device 3 (unit=kelvin)
+ Data saved (seq=1)
+ -> INIT message from Device 4 (unit=percent)
+ Data saved (seq=1)
+ -> INIT message from Device 5 (unit=volts)
+ Data saved (seq=1)
+ -> INIT message from Device 6 (unit=amps)
+ Data saved (seq=1)
+ -> INIT message from Device 7 (unit=watts)
+ Data saved (seq=1)
+ -> INIT message from Device 8 (unit=meters)
+ Data saved (seq=1)
+ -> INIT message from Device 9 (unit=liters)
+ Data saved (seq=1)
+ -> INIT message from Device 10 (unit=grams)
+ Data saved (seq=1)
+ -> INIT message from Device 11 (unit=pascal)
+ Data saved (seq=1)
+ -> INIT message from Device 12 (unit=hertz)
+ Data saved (seq=1)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=2)
+ -> DATA received (seq=2)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=3)
+ -> DATA received (seq=3)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=4)
+ -> DATA received (seq=4)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+Heartbeat Received
+ -> HEARTBEAT from Device 1
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 3
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 4
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 5
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 6
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 7
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 8
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 9
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 10
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 12
+ Data saved (seq=0)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=5)
+ -> DATA received (seq=5)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=6)
+ -> DATA received (seq=6)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=7)
+ -> DATA received (seq=7)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+Heartbeat Received
+ -> HEARTBEAT from Device 1
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 3
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 4
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 5
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 6
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 7
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 8
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 9
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 10
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 12
+ Data saved (seq=0)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=8)
+ -> DATA received (seq=8)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+ Data saved (seq=9)
+ -> DATA received (seq=9)
+Heartbeat Received
+ -> HEARTBEAT from Device 1
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 3
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 4
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 5
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 6
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 7
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 8
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 9
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 10
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 12
+ Data saved (seq=0)

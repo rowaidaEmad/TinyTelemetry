@@ -1,4 +1,6 @@
 # IoT UDP Protocol Test Suite
+*Version:** November 7, 2025, phase 1  
+**Tested with:** Python 3.10 on Ubuntu 22.04
 
 This project implements and evaluates a custom IoT communication protocol using UDP sockets. It simulates sensor data transmission from a client device to a server, performing baseline, delay, and packet loss experiments.
 
@@ -16,7 +18,8 @@ baseline.sh    → Runs the baseline (no delay/loss) test
 delay.sh           → Runs the 100ms delay + 10ms jitter test  
 loss.sh        → Runs the 5% packet loss test  
 sensor_values.txt  → Sample sensor readings used by the client  
-logs/              → Folder where CSV log files and test outputs are stored  
+iot_device_data.csv→ Example output CSV (from a previous run)
+README.md          → This file  
 ```
 
 ---
@@ -67,7 +70,35 @@ logs/              → Folder where CSV log files and test outputs are stored
   ```
 
 ---
+## Quick start (single machine)
 
+Open **two terminals** in the project folder.
+
+### 1) Start the server
+
+```bash
+python3 udpsrv.py
+```
+
+- Creates `logs/iot_device_data.csv` (and appends if it exists).
+- Prints per‑packet info; press **Ctrl‑C** to stop and see a short summary.
+
+### 2) Run the client
+
+```bash
+# Syntax: python3 udpclnt.py [total_duration_seconds] [intervals_csv]
+python3 udpclnt.py 180 "1,5,30"
+```
+
+- **Intervals:** the client cycles through each interval (in seconds) and, in this snapshot, sends for **~60s per interval**.  
+  *FYI:* The first CLI argument (`total_duration_seconds`) is parsed but **not currently applied** in this code snapshot; the run length is effectively fixed at 60s per interval.
+- **Payload:** taken from `sensor_values.txt` (one comma‑separated line per reading). The file provided contains a few example rows — add your own values as needed.
+- **Heartbeats:** sent every 10 seconds in the background.
+- **INIT:** sent once at the start.
+
+You should see the server printing lines and the CSV growing under `logs/`.
+
+---
 ## How to Run Tests
 
 ### 1. Baseline Test (no delay/loss)
@@ -90,6 +121,14 @@ sudo ./loss.sh
 ```
 Simulates 5% packet loss.  
 Results saved in `logs/loss_5percent.csv`.
+
+
+## Windows (Using Git Bash)
+### 1. Baseline Test (no delay/loss)
+# Run Git Bash as Administrator, then:
+```bash
+./baseline.sh
+```
 
 ---
 
@@ -148,7 +187,17 @@ Delivery rate: 98.33%
   ```bash
   sudo tc qdisc del dev lo root
   ```
+## Running Across Two Machines
 
+- Start `udpsrv.py` on the server:
+  ```bash
+  python3 udpsrv.py
+  ```
+- Edit `udpclnt.py` and change `SERVER_ADDR = ('localhost', 12000)`  
+  to the server’s IP (e.g., `('192.168.1.50', 12000)`), then run:
+  ```bash
+  python3 udpclnt.py 180 "1,5,30"
+  ```
 ---
 
 ## Architecture Overview

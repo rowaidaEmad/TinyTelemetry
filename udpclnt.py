@@ -6,17 +6,17 @@ import sys
 from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code
 
 # Configurable defaults
-DEFAULT_TOTAL_DURATION = 20  # total test duration = 60s * 3 intervals
+DEFAULT_INTERVAL_DURATION = 20  # total test duration = 60s * 3 intervals
 DEFAULT_INTERVALS = [1, 5, 30]
 
 # Parse command-line arguments
 if len(sys.argv) > 1:
     try:
-        total_duration = int(sys.argv[1])
+        Interval_Duration = int(sys.argv[1])
     except ValueError:
-        total_duration = DEFAULT_TOTAL_DURATION
+        Interval_Duration = DEFAULT_INTERVAL_DURATION
 else:
-    total_duration = DEFAULT_TOTAL_DURATION
+    Interval_Duration = DEFAULT_INTERVAL_DURATION
 
 if len(sys.argv) > 2:
     try:
@@ -31,17 +31,82 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 running = True
 
+# HISTORY STORAGE (Key is now (device_id, seq_num) tuple)
+sent_history = {} 
+
+# Send INIT message once
+# header = build_header(device_id=MY_DEVICE_ID, batch_count=0, seq_num=seq_num, msg_type=MSG_INIT)
+# client_socket.sendto(header, SERVER_ADDR)
+# sent_history[(MY_DEVICE_ID, seq_num)] = header # Store with device ID
+# print(f"Sent INIT (Device={MY_DEVICE_ID}, seq={seq_num})")
+# seq_num += 1
+
 def send_heartbeat():
     """Send heartbeat messages every 1 second from all devices."""
     global running
     while running:
-        time.sleep(1)
+        time.sleep(10)
+        # time.sleep(1)
         #sending heartbeat message for all sensors in text file
         for sensor in sensors:
-            header = build_header(device_id=sensor['device_id'], batch_count=0, seq_num=sensor['seq_num'], msg_type=HEART_BEAT)
+            header = build_header(device_id=sensor['device_id'], batch_count=0, seq_num=0, msg_type=HEART_BEAT)
             client_socket.sendto(header, SERVER_ADDR)
             print(f"Sent HEARTBEAT (seq={sensor['seq_num']})")
-            sensor['seq_num'] += 1
+            # sensor['seq_num'] += 1
+        # header = build_header(device_id=MY_DEVICE_ID, batch_count=0, seq_num=seq_num, msg_type=HEART_BEAT)
+        # client_socket.sendto(header, SERVER_ADDR)
+        # sent_history[(MY_DEVICE_ID, seq_num)] = header # Store with device ID
+        # print(f"Sent HEARTBEAT (Device={MY_DEVICE_ID}, seq={seq_num})")
+        # seq_num += 1
+
+def receive_nacks():
+    """Thread to listen for NACK messages from server."""
+    global running
+    client_socket.settimeout(1.0) # non-blocking with timeout
+    while running:
+        try:
+            data, addr = client_socket.recvfrom(1024)
+            msg = data.decode('utf-8')
+            
+            # Expected format: "NACK:<device_id>:<seq1>,<seq2>,..."
+            if msg.startswith("NACK:"):
+                parts = msg.split(":")
+                if len(parts) == 3:
+                    try:
+                        nack_device_id = int(parts[1])
+                        missing_str = parts[2]
+                        missing_seqs = [int(s) for s in missing_str.split(",") if s.strip()]
+                    except ValueError:
+                        print(f" [x] Failed to parse NACK message: {msg}")
+                        continue
+                else:
+                    print(f" [x] Received malformed NACK message: {msg}")
+                    continue
+
+                # if nack_device_id != MY_DEVICE_ID:
+                #     print(f" [x] Received NACK for device ID {nack_device_id}, ignoring (My ID is {MY_DEVICE_ID}).")
+                #     continue
+                
+                print(f"\n [!] Received NACK for Device {nack_device_id}, seqs: {missing_seqs}")
+                
+                for miss_seq in missing_seqs:
+                    history_key = (nack_device_id, miss_seq)
+                    if history_key in sent_history:
+                        packet = sent_history[history_key]
+                        client_socket.sendto(packet, SERVER_ADDR)
+                        print(f" [>>] Retransmitting seq={miss_seq}")
+                    else:
+                        print(f" [x] Cannot retransmit seq={miss_seq} (not in history)")
+                        
+        except socket.timeout:
+            continue
+        except Exception as e:
+            if running:
+                print(f"Error in receiver thread: {e}")
+
+# Start background threads
+# threading.Thread(target=send_heartbeat, daemon=True).start()
+threading.Thread(target=receive_nacks, daemon=True).start()
 
 # Load sensor data
 if not os.path.exists("sensor_values.txt"):
@@ -74,12 +139,12 @@ else:
         # Start heartbeat thread
         threading.Thread(target=send_heartbeat, daemon=True).start()
 
-        print(f"Starting test for intervals {intervals} (60s each)...")
+        print(f"Starting test for intervals {intervals} ({Interval_Duration}s each)...")
 
         for interval in intervals:
-            print(f"\n--- Running {interval}s interval for 60 seconds ---")
+            print(f"\n--- Running {interval}s interval for {Interval_Duration} seconds ---")
             start_interval = time.time()
-            while time.time() - start_interval < 60:
+            while time.time() - start_interval < Interval_Duration:
                 for sensor in sensors:
                     start = sensor['current_index']
                     if start < len(sensor['readings']):
@@ -89,8 +154,9 @@ else:
 
                         header = build_header(device_id=sensor['device_id'], batch_count=batch_count,
                                               seq_num=sensor['seq_num'], msg_type=MSG_DATA)
-                        filler = b"\x00" * (MAX_BYTES - len(header) - len(payload))
-                        packet = header + payload + filler
+                       
+                        packet = header + payload 
+                        sent_history[(sensor['device_id'], sensor['seq_num'])] = packet
 
                         client_socket.sendto(packet, SERVER_ADDR)
                         print(f"Sent DATA seq={sensor['seq_num']}, interval={interval}s, readings={chunk}")
@@ -102,4 +168,4 @@ else:
 print("Test finished. Closing client...")
 running = False
 client_socket.close()
-print("Client finished.")
+print("Client finished.")

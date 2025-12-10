@@ -1,0 +1,9 @@
+Sent INIT (seq=1, unit=celsius)
+Sent INIT (seq=1, unit=fahrenheit)
+Sent INIT (seq=1, unit=kelvin)
+Sent INIT (seq=1, unit=percent)
+Sent INIT (seq=1, unit=volts)
+Traceback (most recent call last):
+  File "C:\Users\hp\Desktop\TinyTelemetry\udpclnt.py", line 137, in <module>
+    time.sleep(1)
+KeyboardInterrupt

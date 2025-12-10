@@ -168,4 +168,5 @@ else:
 print("Test finished. Closing client...")
 running = False
 client_socket.close()
-print("Client finished.")
+print("Client finished.")\
+#bkrh git

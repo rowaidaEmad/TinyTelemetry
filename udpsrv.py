@@ -4,7 +4,7 @@ import csv
 import os
 import sys
 from datetime import datetime
-from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG
+from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG, decrypt_numeric_payload
 
 # --- Real-time logging ---
 sys.stdout.reconfigure(line_buffering=True)
@@ -146,7 +146,14 @@ try:
             print("Header error:", e)
             continue
 
-        payload = data[HEADER_SIZE:].decode('utf-8', errors='ignore')
+        # Payload arrives as encrypted numeric floats for DATA messages (or empty for INIT/HEARTBEAT)
+        encrypted_payload_bytes = data[HEADER_SIZE:]
+        try:
+            # Attempt to decrypt payload into original numeric CSV string
+            payload = decrypt_numeric_payload(encrypted_payload_bytes, header['device_id'], header['seq'])
+        except Exception:
+            # Fallback: decode raw payload as text
+            payload = encrypted_payload_bytes.decode('utf-8', errors='ignore')
         
         device_id = header['device_id']
         seq = header['seq']
@@ -269,7 +276,7 @@ try:
                 print(f" -> DATA received (ID:{device_id}, seq={seq}) DUPLICATE (Ignored).")
             else:
                 print(f" -> DATA received (ID:{device_id}, seq={seq})")
-                
+                 
         elif header['msg_type'] == MSG_INIT:
             unit = code_to_unit(header['batch_count'])
             print(f" -> INIT message from Device {device_id} (unit={unit})")

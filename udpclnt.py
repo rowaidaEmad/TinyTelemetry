@@ -3,7 +3,7 @@ import threading
 import time
 import os
 import sys
-from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code, parse_header, NACK_MSG, HEADER_SIZE
+from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code, parse_header, NACK_MSG, HEADER_SIZE, encrypt_numeric_payload
 
 # Configurable defaults
 DEFAULT_INTERVAL_DURATION = 20  # total test duration = 60s * 3 intervals
@@ -192,12 +192,15 @@ else:
                     if start < len(sensor['readings']):
                         chunk = sensor['readings'][start:start+10]
                         batch_count = len(chunk)
-                        payload = ",".join(chunk).encode("utf-8")
+                        payload_str = ",".join(chunk)
 
                         header = build_header(device_id=sensor['device_id'], batch_count=batch_count,
                                               seq_num=sensor['seq_num'], msg_type=MSG_DATA)
-                       
-                        packet = header + payload 
+
+                        # Encrypt numeric payload into numeric-only floats (bytes)
+                        enc_payload = encrypt_numeric_payload(payload_str, sensor['device_id'], sensor['seq_num'])
+
+                        packet = header + enc_payload
                         sent_history[(sensor['device_id'], sensor['seq_num'])] = packet
 
                         client_socket.sendto(packet, SERVER_ADDR)

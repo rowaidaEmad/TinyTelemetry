@@ -1,9 +1,9 @@
 UDP Server running on port 12000 (max 200 bytes)
-Appending to existing CSV: logs/iot_device_data.csv
+Created new CSV file with headers: logs/iot_device_data.csv
  -> INIT message from Device 2 (unit=fahrenheit)
  Data saved (ID:2, seq=1)
- -> INIT message from Device 3 (unit=kelvin)
- Data saved (ID:3, seq=1)
+ -> INIT message from Device 4 (unit=percent)
+ Data saved (ID:4, seq=1)
  -> INIT message from Device 5 (unit=volts)
  Data saved (ID:5, seq=1)
  -> INIT message from Device 6 (unit=amps)
@@ -16,22 +16,22 @@ Appending to existing CSV: logs/iot_device_data.csv
  Data saved (ID:9, seq=1)
  -> INIT message from Device 10 (unit=grams)
  Data saved (ID:10, seq=1)
- -> INIT message from Device 11 (unit=pascal)
- Data saved (ID:11, seq=1)
  -> INIT message from Device 12 (unit=hertz)
  Data saved (ID:12, seq=1)
+ [!] Gap Detected! ID:1, Missing packets: 1
  [!] Gap Detected! ID:1, Missing packets: 1
  [<<] Sent NACK request for ID:1, seq: 1
  -> INIT message from Device 1 (unit=celsius)
  Data saved (ID:1, seq=1)
  Data saved (ID:2, seq=2)
  -> DATA received (ID:2, seq=2)
- Data saved (ID:3, seq=2)
- -> DATA received (ID:3, seq=2)
- [!] Gap Detected! ID:4, Missing packets: 1
- [<<] Sent NACK request for ID:4, seq: 1
- -> INIT message from Device 4 (unit=percent)
- Data saved (ID:4, seq=1)
+ [!] Gap Detected! ID:3, Missing packets: 1
+ [!] Gap Detected! ID:3, Missing packets: 1
+ [<<] Sent NACK request for ID:3, seq: 1
+ -> INIT message from Device 3 (unit=kelvin)
+ Data saved (ID:3, seq=1)
+ Data saved (ID:4, seq=2)
+ -> DATA received (ID:4, seq=2)
  Data saved (ID:5, seq=2)
  -> DATA received (ID:5, seq=2)
  Data saved (ID:6, seq=2)
@@ -44,8 +44,11 @@ Appending to existing CSV: logs/iot_device_data.csv
  -> DATA received (ID:9, seq=2)
  Data saved (ID:10, seq=2)
  -> DATA received (ID:10, seq=2)
- Data saved (ID:11, seq=2)
- -> DATA received (ID:11, seq=2)
+ [!] Gap Detected! ID:11, Missing packets: 1
+ [!] Gap Detected! ID:11, Missing packets: 1
+ [<<] Sent NACK request for ID:11, seq: 1
+ -> INIT message from Device 11 (unit=pascal)
+ Data saved (ID:11, seq=1)
  Data saved (ID:12, seq=2)
  -> DATA received (ID:12, seq=2)
  [!] Gap Detected! ID:1, Missing packets: 2
@@ -57,15 +60,15 @@ Appending to existing CSV: logs/iot_device_data.csv
  -> DATA received (ID:1, seq=2)
  Data saved (ID:2, seq=3)
  -> DATA received (ID:2, seq=3)
+ [!] Gap Detected! ID:3, Missing packets: 2
+ [<<] Sent NACK request for ID:3, seq: 2
  Data saved (ID:3, seq=3)
- -> DATA received (ID:3, seq=3)
- [!] Gap Detected! ID:4, Missing packets: 2
- [<<] Sent NACK request for ID:4, seq: 2
+ -> DATA received (ID:3, seq=3) with GAP.
+ [+] Recovered packet ID:3, seq:2 (was missing).
+ Data saved (ID:3, seq=2)
+ -> DATA received (ID:3, seq=2)
  Data saved (ID:4, seq=3)
- -> DATA received (ID:4, seq=3) with GAP.
- [+] Recovered packet ID:4, seq:2 (was missing).
- Data saved (ID:4, seq=2)
- -> DATA received (ID:4, seq=2)
+ -> DATA received (ID:4, seq=3)
  Data saved (ID:5, seq=3)
  -> DATA received (ID:5, seq=3)
  Data saved (ID:6, seq=3)
@@ -78,79 +81,87 @@ Appending to existing CSV: logs/iot_device_data.csv
  -> DATA received (ID:9, seq=3)
  Data saved (ID:10, seq=3)
  -> DATA received (ID:10, seq=3)
+ [!] Gap Detected! ID:11, Missing packets: 2
+ [<<] Sent NACK request for ID:11, seq: 2
  Data saved (ID:11, seq=3)
- -> DATA received (ID:11, seq=3)
+ -> DATA received (ID:11, seq=3) with GAP.
+ [+] Recovered packet ID:11, seq:2 (was missing).
+ Data saved (ID:11, seq=2)
+ -> DATA received (ID:11, seq=2)
  Data saved (ID:12, seq=3)
  -> DATA received (ID:12, seq=3)
  Data saved (ID:1, seq=4)
  -> DATA received (ID:1, seq=4)
  Data saved (ID:2, seq=4)
  -> DATA received (ID:2, seq=4)
- Data saved (ID:3, seq=4)
- -> DATA received (ID:3, seq=4)
  Data saved (ID:4, seq=4)
  -> DATA received (ID:4, seq=4)
- Data saved (ID:5, seq=4)
- -> DATA received (ID:5, seq=4)
  Data saved (ID:6, seq=4)
  -> DATA received (ID:6, seq=4)
  Data saved (ID:7, seq=4)
  -> DATA received (ID:7, seq=4)
+ Data saved (ID:8, seq=4)
+ -> DATA received (ID:8, seq=4)
  Data saved (ID:9, seq=4)
  -> DATA received (ID:9, seq=4)
  Data saved (ID:10, seq=4)
  -> DATA received (ID:10, seq=4)
  Data saved (ID:11, seq=4)
  -> DATA received (ID:11, seq=4)
- Data saved (ID:12, seq=4)
- -> DATA received (ID:12, seq=4)
  Data saved (ID:1, seq=5)
  -> DATA received (ID:1, seq=5)
  Data saved (ID:2, seq=5)
  -> DATA received (ID:2, seq=5)
+ [!] Gap Detected! ID:3, Missing packets: 4
+ [<<] Sent NACK request for ID:3, seq: 4
  Data saved (ID:3, seq=5)
- -> DATA received (ID:3, seq=5)
+ -> DATA received (ID:3, seq=5) with GAP.
+ [+] Recovered packet ID:3, seq:4 (was missing).
+ Data saved (ID:3, seq=4)
+ -> DATA received (ID:3, seq=4)
  Data saved (ID:4, seq=5)
  -> DATA received (ID:4, seq=5)
+ [!] Gap Detected! ID:5, Missing packets: 4
+ [<<] Sent NACK request for ID:5, seq: 4
  Data saved (ID:5, seq=5)
- -> DATA received (ID:5, seq=5)
+ -> DATA received (ID:5, seq=5) with GAP.
  Data saved (ID:6, seq=5)
  -> DATA received (ID:6, seq=5)
  Data saved (ID:7, seq=5)
  -> DATA received (ID:7, seq=5)
- [!] Gap Detected! ID:8, Missing packets: 4
- [<<] Sent NACK request for ID:8, seq: 4
  Data saved (ID:8, seq=5)
- -> DATA received (ID:8, seq=5) with GAP.
- [+] Recovered packet ID:8, seq:4 (was missing).
- Data saved (ID:8, seq=4)
- -> DATA received (ID:8, seq=4)
+ -> DATA received (ID:8, seq=5)
  Data saved (ID:9, seq=5)
  -> DATA received (ID:9, seq=5)
  Data saved (ID:10, seq=5)
  -> DATA received (ID:10, seq=5)
  Data saved (ID:11, seq=5)
  -> DATA received (ID:11, seq=5)
+ [!] Gap Detected! ID:12, Missing packets: 4
+ [<<] Sent NACK request for ID:12, seq: 4
  Data saved (ID:12, seq=5)
- -> DATA received (ID:12, seq=5)
- Data saved (ID:1, seq=6)
- -> DATA received (ID:1, seq=6)
+ -> DATA received (ID:12, seq=5) with GAP.
+ [+] Recovered packet ID:12, seq:4 (was missing).
+ Data saved (ID:12, seq=4)
+ -> DATA received (ID:12, seq=4)
  Data saved (ID:2, seq=6)
  -> DATA received (ID:2, seq=6)
  Data saved (ID:3, seq=6)
  -> DATA received (ID:3, seq=6)
  Data saved (ID:4, seq=6)
  -> DATA received (ID:4, seq=6)
- Data saved (ID:5, seq=6)
- -> DATA received (ID:5, seq=6)
  Data saved (ID:6, seq=6)
  -> DATA received (ID:6, seq=6)
  Data saved (ID:7, seq=6)
  -> DATA received (ID:7, seq=6)
  Data saved (ID:8, seq=6)
  -> DATA received (ID:8, seq=6)
+ Data saved (ID:9, seq=6)
+ -> DATA received (ID:9, seq=6)
  Data saved (ID:10, seq=6)
  -> DATA received (ID:10, seq=6)
+ Data saved (ID:12, seq=6)
+ -> DATA received (ID:12, seq=6)
 Heartbeat Received
  -> HEARTBEAT from Device 1
  Data saved (ID:1, seq=0)
@@ -187,35 +198,43 @@ Heartbeat Received
 Heartbeat Received
  -> HEARTBEAT from Device 12
  Data saved (ID:12, seq=0)
- Data saved (ID:11, seq=6)
- -> DATA received (ID:11, seq=6)
- Data saved (ID:12, seq=6)
- -> DATA received (ID:12, seq=6)
+ [!] Gap Detected! ID:1, Missing packets: 6
+ [<<] Sent NACK request for ID:1, seq: 6
  Data saved (ID:1, seq=7)
- -> DATA received (ID:1, seq=7)
+ -> DATA received (ID:1, seq=7) with GAP.
+ [+] Recovered packet ID:1, seq:6 (was missing).
+ Data saved (ID:1, seq=6)
+ -> DATA received (ID:1, seq=6)
  Data saved (ID:2, seq=7)
  -> DATA received (ID:2, seq=7)
  Data saved (ID:3, seq=7)
  -> DATA received (ID:3, seq=7)
  Data saved (ID:4, seq=7)
  -> DATA received (ID:4, seq=7)
+ [!] Gap Detected! ID:5, Missing packets: 6
+ [<<] Sent NACK request for ID:5, seq: 6
  Data saved (ID:5, seq=7)
- -> DATA received (ID:5, seq=7)
+ -> DATA received (ID:5, seq=7) with GAP.
+ [+] Recovered packet ID:5, seq:6 (was missing).
+ Data saved (ID:5, seq=6)
+ -> DATA received (ID:5, seq=6)
+ Data saved (ID:6, seq=7)
+ -> DATA received (ID:6, seq=7)
  Data saved (ID:7, seq=7)
  -> DATA received (ID:7, seq=7)
  Data saved (ID:8, seq=7)
  -> DATA received (ID:8, seq=7)
- [!] Gap Detected! ID:9, Missing packets: 6
- [<<] Sent NACK request for ID:9, seq: 6
  Data saved (ID:9, seq=7)
- -> DATA received (ID:9, seq=7) with GAP.
- [+] Recovered packet ID:9, seq:6 (was missing).
- Data saved (ID:9, seq=6)
- -> DATA received (ID:9, seq=6)
+ -> DATA received (ID:9, seq=7)
  Data saved (ID:10, seq=7)
  -> DATA received (ID:10, seq=7)
+ [!] Gap Detected! ID:11, Missing packets: 6
+ [<<] Sent NACK request for ID:11, seq: 6
  Data saved (ID:11, seq=7)
- -> DATA received (ID:11, seq=7)
+ -> DATA received (ID:11, seq=7) with GAP.
+ [+] Recovered packet ID:11, seq:6 (was missing).
+ Data saved (ID:11, seq=6)
+ -> DATA received (ID:11, seq=6)
  Data saved (ID:12, seq=7)
  -> DATA received (ID:12, seq=7)
  Data saved (ID:1, seq=8)
@@ -228,13 +247,8 @@ Heartbeat Received
  -> DATA received (ID:4, seq=8)
  Data saved (ID:5, seq=8)
  -> DATA received (ID:5, seq=8)
- [!] Gap Detected! ID:6, Missing packets: 7
- [<<] Sent NACK request for ID:6, seq: 7
  Data saved (ID:6, seq=8)
- -> DATA received (ID:6, seq=8) with GAP.
- [+] Recovered packet ID:6, seq:7 (was missing).
- Data saved (ID:6, seq=7)
- -> DATA received (ID:6, seq=7)
+ -> DATA received (ID:6, seq=8)
  Data saved (ID:7, seq=8)
  -> DATA received (ID:7, seq=8)
  Data saved (ID:8, seq=8)
@@ -251,12 +265,10 @@ Heartbeat Received
  -> DATA received (ID:1, seq=9)
  Data saved (ID:2, seq=9)
  -> DATA received (ID:2, seq=9)
- Data saved (ID:3, seq=9)
- -> DATA received (ID:3, seq=9)
  Data saved (ID:4, seq=9)
  -> DATA received (ID:4, seq=9)
- Data saved (ID:6, seq=9)
- -> DATA received (ID:6, seq=9)
+ Data saved (ID:5, seq=9)
+ -> DATA received (ID:5, seq=9)
  Data saved (ID:7, seq=9)
  -> DATA received (ID:7, seq=9)
  Data saved (ID:8, seq=9)
@@ -270,8 +282,71 @@ Heartbeat Received
  Data saved (ID:12, seq=9)
  -> DATA received (ID:12, seq=9)
 Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (ID:2, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 3
+ Data saved (ID:3, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 4
+ Data saved (ID:4, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 5
+ Data saved (ID:5, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 6
+ Data saved (ID:6, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 7
+ Data saved (ID:7, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 9
+ Data saved (ID:9, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 10
+ Data saved (ID:10, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (ID:11, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 12
+ Data saved (ID:12, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (ID:2, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 4
+ Data saved (ID:4, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 5
+ Data saved (ID:5, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 6
+ Data saved (ID:6, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 7
+ Data saved (ID:7, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 8
+ Data saved (ID:8, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 9
+ Data saved (ID:9, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 10
+ Data saved (ID:10, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (ID:11, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 12
+ Data saved (ID:12, seq=0)
+Heartbeat Received
  -> HEARTBEAT from Device 1
  Data saved (ID:1, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (ID:2, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 3
  Data saved (ID:3, seq=0)
@@ -333,134 +408,71 @@ Heartbeat Received
  -> HEARTBEAT from Device 10
  Data saved (ID:10, seq=0)
 Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (ID:11, seq=0)
+Heartbeat Received
  -> HEARTBEAT from Device 12
  Data saved (ID:12, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 1
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:1, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 2
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:2, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 4
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:4, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 5
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 8
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 9
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 10
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 11
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 12
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 1
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 2
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 3
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 4
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 5
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:5, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 6
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:6, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 8
+ Data saved (ID:8, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 10
+ Data saved (ID:10, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 11
+ Data saved (ID:11, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 12
+ Data saved (ID:12, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 1
+ Data saved (ID:1, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 2
+ Data saved (ID:2, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 3
+ Data saved (ID:3, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 4
+ Data saved (ID:4, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 5
+ Data saved (ID:5, seq=0)
+Heartbeat Received
+ -> HEARTBEAT from Device 6
+ Data saved (ID:6, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 7
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:7, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 8
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:8, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 9
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:9, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 10
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:10, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 11
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 1
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 2
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 3
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 4
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 5
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 6
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 8
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 9
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 10
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 11
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:11, seq=0)
 Heartbeat Received
  -> HEARTBEAT from Device 12
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 1
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 2
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 3
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 4
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 5
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 6
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 7
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 8
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 9
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 10
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 11
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
-Heartbeat Received
- -> HEARTBEAT from Device 12
- Error writing/rewriting to CSV: [Errno 13] Permission denied: 'logs/iot_device_data.csv'
+ Data saved (ID:12, seq=0)

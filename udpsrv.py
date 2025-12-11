@@ -115,6 +115,18 @@ def save_to_csv(data_dict, is_update=False):
     except Exception as e:
         print(f" Error writing/rewriting to CSV: {e}")
 
+server_seq = 1
+def send_NACK(device_id, addr, missing_seq):
+    global server_seq
+    print(f" [!] Gap Detected! ID:{device_id}, Missing packets: {missing_seq}")
+    srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
+    server_seq+=1
+    srv_payload = str(device_id) +":"+ str(missing_seq)
+    Nack_packet=srv_header+srv_payload.encode('utf-8')
+
+    server_socket.sendto(Nack_packet, addr)
+    print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_seq}")
+
 # --- State Tracking Class ---
 class DeviceTracker:
     def __init__(self):
@@ -126,7 +138,6 @@ init_csv_file()
 trackers = {} 
 received_count = 0
 duplicate_count = 0
-server_seq = 1
 try:
     while True:
         data, addr = server_socket.recvfrom(MAX_BYTES)
@@ -152,12 +163,7 @@ try:
             else:
                 print(f" [!] Gap Detected! ID:{device_id}, Missing packets: 1")
 
-                srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
-                server_seq+=1
-                srv_payload = str(device_id) +":"+ str(1)
-                Nack_packet = srv_header + srv_payload.encode('utf-8')
-                server_socket.sendto(Nack_packet, addr)
-                print(f" [<<] Sent NACK request for ID:{device_id}, seq: 1")
+                send_NACK(device_id=device_id,addr=addr,missing_seq=1)
                 continue
 
 
@@ -185,20 +191,8 @@ try:
             # Identify missing packets
             missing_list = []
             for missing_seq in range(tracker.highest_seq + 1, seq):
-                
-                print(f" [!] Gap Detected! ID:{device_id}, Missing packets: {missing_seq}")
-
-                tracker.missing_set.add(missing_seq)
-                
-                srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
-                server_seq+=1
-                srv_payload = str(device_id) +":"+ str(missing_seq)
-                Nack_packet=srv_header+srv_payload.encode('utf-8')
-
-                server_socket.sendto(Nack_packet, addr)
-                print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_seq}")
-
-
+                tracker.missing_set.add(missing_seq)    
+                send_NACK(device_id=device_id,addr=addr,missing_seq=missing_seq)
                 #missing_list.append(str(missing_seq))
             
             

@@ -10,7 +10,7 @@ from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, un
 DEFAULT_INTERVAL_DURATION = 20  # total test duration = 60s * 3 intervals
 DEFAULT_INTERVALS = [1, 5, 30]
 sensors = []
-
+time.sleep(2)
 # Parse command-line arguments
 if len(sys.argv) > 1:
     try:
@@ -28,7 +28,7 @@ if len(sys.argv) > 2:
 else:
     intervals = DEFAULT_INTERVALS
 
-SERVER_ADDR = ('localhost', 12000)
+SERVER_ADDR = ('localhost', 12001)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 running = True

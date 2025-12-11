@@ -5,17 +5,21 @@ import os
 import sys
 from datetime import datetime
 import struct
+import threading
 from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG
 
 # --- Real-time logging ---
 sys.stdout.reconfigure(line_buffering=True)
 SERVER_ID=1
 # --- Server setup ---
-SERVER_PORT = 12000
+SERVER_PORT = 12001
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(('', SERVER_PORT))
 print(f"UDP Server running on port {SERVER_PORT} (max {MAX_BYTES} bytes)")
+NACK_DELAY_SECONDS = 0.1
+nack_lock = threading.Lock()
+delayed_nack_requests = []
 
 # --- CSV Configuration ---
 LOG_DIR = "logs"
@@ -122,17 +126,90 @@ def save_to_csv(data_dict, is_update=False):
     except Exception as e:
         print(f" Error writing/rewriting to CSV: {e}")
 
+
+# --- NACK Handling Functions ---
 server_seq = 1
-def send_NACK(device_id, addr, missing_seq):
+def schedule_NACK(device_id, addr, missing_seq):
+    """Schedules a NACK request to be sent after NACK_DELAY_SECONDS."""
+    unique_key = (device_id, missing_seq)
+    nack_time = time.time() + NACK_DELAY_SECONDS
+    request = {
+        'device_id': device_id,
+        'missing_seq': missing_seq,
+        'addr': addr,
+        'nack_time': nack_time
+    }
+    
+    with nack_lock:
+        is_already_scheduled = any(
+            (req['device_id'], req['missing_seq']) == unique_key 
+            for req in delayed_nack_requests
+        )
+        
+        if not is_already_scheduled:
+            delayed_nack_requests.append(request)
+            print(f" [~] Scheduled NACK for ID:{device_id}, seq: {missing_seq} at T + {NACK_DELAY_SECONDS}s")
+        else:
+            print(f" [X] Ignoring duplicate schedule request for ID:{device_id}, seq: {missing_seq}")
+    
+
+def send_NACK_now(device_id, addr, missing_seq):
+    """Builds and sends the NACK packet immediately (used by scheduler)."""
     global server_seq
-    print(f" [!] Gap Detected! ID:{device_id}, Missing packets: {missing_seq}")
+    
     srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
-    server_seq+=1
+    server_seq += 1
+    
     srv_payload = str(device_id) +":"+ str(missing_seq)
-    Nack_packet=srv_header+srv_payload.encode('utf-8')
+    Nack_packet = srv_header + srv_payload.encode('utf-8')
 
     server_socket.sendto(Nack_packet, addr)
     print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_seq}")
+
+def nack_scheduler():
+    """Thread function to process the delayed NACK requests."""
+    global delayed_nack_requests
+    print("NACK Scheduler Thread started.")
+    
+    # Use running flag for graceful shutdown if needed, otherwise loop forever
+    while True:
+        now = time.time()
+        requests_to_send = []
+        
+        with nack_lock:
+            # Find all requests that are due now or in the past
+            requests_to_send = [req for req in delayed_nack_requests if req['nack_time'] <= now]
+            # Keep only the requests that are NOT due yet
+            delayed_nack_requests = [req for req in delayed_nack_requests if req['nack_time'] > now]
+            
+        for req in requests_to_send:
+            device_id = req['device_id']
+            missing_seq = req['missing_seq']
+            
+            # CRITICAL CHECK: Check if the missing packet has been recovered while waiting
+            if (device_id in trackers and missing_seq in trackers[device_id].missing_set) or (missing_seq == 1 and device_id not in trackers):
+                print(f" [N] Called send_NACK function for ID:{device_id}, seq:{missing_seq}")
+                send_NACK_now(device_id=device_id, addr=req['addr'], missing_seq=missing_seq)
+
+            else:
+                # Packet was already recovered (Case 3a) or device disconnected. Do nothing.
+                pass
+        
+        # Sleep for a short interval to reduce CPU load
+        time.sleep(0.1)
+
+
+
+# def send_NACK(device_id, addr, missing_seq):
+#     global server_seq
+#     print(f" [!] Gap Detected! ID:{device_id}, Missing packets: {missing_seq}")
+#     srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
+#     server_seq+=1
+#     srv_payload = str(device_id) +":"+ str(missing_seq)
+#     Nack_packet=srv_header+srv_payload.encode('utf-8')
+
+#     server_socket.sendto(Nack_packet, addr)
+#     print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_seq}")
 
 # --- State Tracking Class ---
 class DeviceTracker:
@@ -145,6 +222,10 @@ init_csv_file()
 trackers = {} 
 received_count = 0
 duplicate_count = 0
+
+
+threading.Thread(target=nack_scheduler, daemon=True).start()
+
 try:
     while True:
         data, addr = server_socket.recvfrom(MAX_BYTES)
@@ -180,16 +261,16 @@ try:
             payload = payload_bytes.decode('utf-8', errors='ignore')
         
         device_id = header['device_id']
-        seq = header['seq']
+        seq = header['seq']  ##1
         
         if (device_id not in trackers):
             if header['msg_type']==MSG_INIT:
                 trackers[device_id] = DeviceTracker()
-                trackers[device_id].highest_seq = seq - 1 
+                trackers[device_id].highest_seq = seq - 1 ##0
             else:
                 print(f" [!] Gap Detected! ID:{device_id}, Missing packets: 1")
 
-                send_NACK(device_id=device_id,addr=addr,missing_seq=1)
+                schedule_NACK(device_id=device_id,addr=addr,missing_seq=1)
                 continue
 
 
@@ -199,6 +280,7 @@ try:
         gap_flag = 0
         
         # --- LOGIC START ---
+
         
         diff = seq - tracker.highest_seq
         if seq==0 :
@@ -218,7 +300,7 @@ try:
             missing_list = []
             for missing_seq in range(tracker.highest_seq + 1, seq):
                 tracker.missing_set.add(missing_seq)    
-                send_NACK(device_id=device_id,addr=addr,missing_seq=missing_seq)
+                schedule_NACK(device_id=device_id,addr=addr,missing_seq=missing_seq)
                 #missing_list.append(str(missing_seq))
             
             
@@ -313,6 +395,3 @@ except KeyboardInterrupt:
     print(f"Missing packets: {missing_count}")
     print(f"Duplicate packets: {duplicate_count}")
     print(f"Delivery rate: {delivery_rate:.2f}%")
-    
-
-

@@ -3,7 +3,7 @@
 
 # Reset and apply 5% packet loss
 sudo tc qdisc del dev lo root 2>/dev/null
-sudo tc qdisc add dev lo root netem loss 20%
+sudo tc qdisc add dev lo root netem loss 5%
 
 # Start the UDP server
 python3 udpsrv.py > server_loss.log 2>&1 &

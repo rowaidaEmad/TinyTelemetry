@@ -4,7 +4,8 @@ import csv
 import os
 import sys
 from datetime import datetime
-from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG, decrypt_numeric_payload
+import struct
+from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG
 
 # --- Real-time logging ---
 sys.stdout.reconfigure(line_buffering=True)
@@ -146,14 +147,26 @@ try:
             print("Header error:", e)
             continue
 
-        # Payload arrives as encrypted numeric floats for DATA messages (or empty for INIT/HEARTBEAT)
-        encrypted_payload_bytes = data[HEADER_SIZE:]
-        try:
-            # Attempt to decrypt payload into original numeric CSV string
-            payload = decrypt_numeric_payload(encrypted_payload_bytes, header['device_id'], header['seq'])
-        except Exception:
-            # Fallback: decode raw payload as text
-            payload = encrypted_payload_bytes.decode('utf-8', errors='ignore')
+        payload_bytes = data[HEADER_SIZE:]
+
+        # For DATA messages, payload is binary doubles (8 bytes each)
+        if header['msg_type'] == MSG_DATA:
+            num = header['batch_count']
+            expected_len = num * 8
+            if len(payload_bytes) >= expected_len and num > 0:
+                try:
+                    fmt = '!' + ('d' * num)
+                    values = list(struct.unpack(fmt, payload_bytes[:expected_len]))
+                    # Format values to fixed decimal string for CSV/logging
+                    payload = ",".join(f"{v:.6f}" for v in values)
+                except Exception as e:
+                    payload = payload_bytes.decode('utf-8', errors='ignore')
+            else:
+                # not enough bytes — fallback to text
+                payload = payload_bytes.decode('utf-8', errors='ignore')
+        else:
+            # INIT or HEARTBEAT: treat payload as text (usually empty)
+            payload = payload_bytes.decode('utf-8', errors='ignore')
         
         device_id = header['device_id']
         seq = header['seq']

@@ -3,7 +3,8 @@ import threading
 import time
 import os
 import sys
-from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code, parse_header, NACK_MSG, HEADER_SIZE, encrypt_numeric_payload
+import struct
+from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code, parse_header, NACK_MSG, HEADER_SIZE
 
 # Configurable defaults
 DEFAULT_INTERVAL_DURATION = 20  # total test duration = 60s * 3 intervals
@@ -192,13 +193,20 @@ else:
                     if start < len(sensor['readings']):
                         chunk = sensor['readings'][start:start+10]
                         batch_count = len(chunk)
-                        payload_str = ",".join(chunk)
+                        # Convert chunk tokens to floats and pack as big-endian doubles (8 bytes each)
+                        values = []
+                        for token in chunk:
+                            try:
+                                values.append(float(token))
+                            except Exception:
+                                # if non-numeric token appears, fallback to 0.0 for that slot
+                                values.append(0.0)
 
                         header = build_header(device_id=sensor['device_id'], batch_count=batch_count,
                                               seq_num=sensor['seq_num'], msg_type=MSG_DATA)
 
-                        # Encrypt numeric payload into numeric-only floats (bytes)
-                        enc_payload = encrypt_numeric_payload(payload_str, sensor['device_id'], sensor['seq_num'])
+                        fmt = '!' + ('d' * len(values))
+                        enc_payload = struct.pack(fmt, *values)
 
                         packet = header + enc_payload
                         sent_history[(sensor['device_id'], sensor['seq_num'])] = packet

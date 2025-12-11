@@ -3,11 +3,12 @@ import threading
 import time
 import os
 import sys
-from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code
+from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code, parse_header, NACK_MSG, HEADER_SIZE
 
 # Configurable defaults
 DEFAULT_INTERVAL_DURATION = 20  # total test duration = 60s * 3 intervals
 DEFAULT_INTERVALS = [1, 5, 30]
+sensors = []
 
 # Parse command-line arguments
 if len(sys.argv) > 1:
@@ -62,42 +63,66 @@ def send_heartbeat():
 def receive_nacks():
     """Thread to listen for NACK messages from server."""
     global running
-    client_socket.settimeout(1.0) # non-blocking with timeout
+    # client_socket.settimeout(1.0) # non-blocking with timeout
     while running:
         try:
-            data, addr = client_socket.recvfrom(1024)
-            msg = data.decode('utf-8')
+            # Data received is a bytes object
+            data, addr = client_socket.recvfrom(1024) 
             
-            # Expected format: "NACK:<device_id>:<seq1>,<seq2>,..."
-            if msg.startswith("NACK:"):
-                parts = msg.split(":")
-                if len(parts) == 3:
+            # Parse the header (which requires bytes)
+            header = parse_header(data)
+            
+            # The payload is the part of the bytes object after the header
+            payload_bytes = data[HEADER_SIZE:]
+            payload_str = payload_bytes.decode('utf-8', errors='ignore').strip()
+
+            if header['msg_type'] == NACK_MSG:
+                # Server sends one NACK packet per missing sequence in the format: "DEVICE_ID:MISSING_SEQ"
+                parts = payload_str.split(":") 
+                
+                if len(parts) == 2:
                     try:
-                        nack_device_id = int(parts[1])
-                        missing_str = parts[2]
-                        missing_seqs = [int(s) for s in missing_str.split(",") if s.strip()]
+                        # 1. FIX: Convert both parts to integers.
+                        nack_device_id = int(parts[0])
+                        missing_seq = int(parts[1]) # Server sends a single sequence number
                     except ValueError:
-                        print(f" [x] Failed to parse NACK message: {msg}")
+                        print(f" [x] Failed to parse NACK payload into integers: {payload_str}")
                         continue
                 else:
-                    print(f" [x] Received malformed NACK message: {msg}")
+                    # The original check here was too broad. Now we know exactly why it's malformed.
+                    print(f" [x] Received malformed NACK payload format: {payload_str}")
                     continue
 
-                # if nack_device_id != MY_DEVICE_ID:
-                #     print(f" [x] Received NACK for device ID {nack_device_id}, ignoring (My ID is {MY_DEVICE_ID}).")
-                #     continue
+                print(f"\n [!] Received NACK for Device {nack_device_id}, seq: {missing_seq}")
                 
-                print(f"\n [!] Received NACK for Device {nack_device_id}, seqs: {missing_seqs}")
-                
-                for miss_seq in missing_seqs:
-                    history_key = (nack_device_id, miss_seq)
-                    if history_key in sent_history:
-                        packet = sent_history[history_key]
-                        client_socket.sendto(packet, SERVER_ADDR)
-                        print(f" [>>] Retransmitting seq={miss_seq}")
-                    else:
-                        print(f" [x] Cannot retransmit seq={miss_seq} (not in history)")
-                        
+                # 2. FIX: Use the single integer sequence number to look up the packet
+                history_key = (nack_device_id, missing_seq)
+                if history_key in sent_history:
+                    packet = sent_history[history_key]
+                    client_socket.sendto(packet, SERVER_ADDR)
+                    print(f" [>>] Retransmitting DATA seq={missing_seq}")
+                else:
+                    print(f" [x] Cannot retransmit seq={missing_seq} (not in history or INIT/HEARTBEAT)")
+
+                # 3. FIX: Handle re-INIT NACK (seq=1) - logic cleaned up
+                if missing_seq == 1:
+                    print(f" [^] Server requested re-INIT for Device {nack_device_id}.")
+                    for sensor in sensors:
+                        if sensor['device_id'] == nack_device_id:
+                            # We can simply resend the INIT packet (seq=1)
+                            init_header = build_header(
+                                device_id=sensor['device_id'], 
+                                batch_count=sensor['unit_code'], 
+                                seq_num=1, 
+                                msg_type=MSG_INIT
+                            )
+                            client_socket.sendto(init_header, SERVER_ADDR)
+                            # Remove state reset that would cause duplicate seq numbers (seq_num=1, current_index=0)
+                            # The client should continue sending data packets starting from its current seq_num
+                            print(f" [>>] Sent re-INIT (seq=1, unit={sensor['unit']})")
+                            time.sleep(0.1) 
+                            break 
+
         except socket.timeout:
             continue
         except Exception as e:
@@ -120,7 +145,6 @@ else:
         print("sensor_values.txt is empty.")
         running = False
     else:
-        sensors = []
         for line in lines:
             parts = [v.strip() for v in line.split(",") if v.strip()]
             device_id = int(parts[0])
@@ -168,5 +192,4 @@ else:
 print("Test finished. Closing client...")
 running = False
 client_socket.close()
-print("Client finished.")\
-#bkrh git
+print("Client finished.")

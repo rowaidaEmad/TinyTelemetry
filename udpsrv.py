@@ -4,11 +4,11 @@ import csv
 import os
 import sys
 from datetime import datetime
-from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit
+from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG
 
 # --- Real-time logging ---
 sys.stdout.reconfigure(line_buffering=True)
-
+SERVER_ID=1
 # --- Server setup ---
 SERVER_PORT = 12000
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -102,7 +102,7 @@ def save_to_csv(data_dict, is_update=False):
                     writer = csv.writer(csvfile)
                     writer.writerows(rows)
             else:
-                 print(f" [!] Error: Duplicate packet {seq} was detected but its original row was not found in CSV.")
+                 print(f" [!] Error: Duplicate packet (ID:{device_id}, seq:{seq}) was detected but its original row was not found in CSV.")
 
         else:
             # --- APPEND LOGIC for new packets ---
@@ -110,7 +110,7 @@ def save_to_csv(data_dict, is_update=False):
                 writer = csv.writer(csvfile)
                 writer.writerow(new_row)
             # Add to the global dictionary to track it was logged
-            print(f" Data saved (seq={seq})")
+            print(f" Data saved (ID:{device_id}, seq={seq})")
             
     except Exception as e:
         print(f" Error writing/rewriting to CSV: {e}")
@@ -126,7 +126,7 @@ init_csv_file()
 trackers = {} 
 received_count = 0
 duplicate_count = 0
-
+server_seq = 1
 try:
     while True:
         data, addr = server_socket.recvfrom(MAX_BYTES)
@@ -145,12 +145,24 @@ try:
         device_id = header['device_id']
         seq = header['seq']
         
-        if device_id not in trackers:
-            trackers[device_id] = DeviceTracker()
-            trackers[device_id].highest_seq = seq - 1 
+        if (device_id not in trackers):
+            if header['msg_type']==MSG_INIT:
+                trackers[device_id] = DeviceTracker()
+                trackers[device_id].highest_seq = seq - 1 
+            else:
+                print(f" [!] Gap Detected! ID:{device_id}, Missing packets: 1")
+
+                srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
+                server_seq+=1
+                srv_payload = str(device_id) +":"+ str(1)
+                Nack_packet = srv_header + srv_payload.encode('utf-8')
+                server_socket.sendto(Nack_packet, addr)
+                print(f" [<<] Sent NACK request for ID:{device_id}, seq: 1")
+                continue
+
 
         tracker = trackers[device_id]
-        
+
         duplicate_flag = 0
         gap_flag = 0
         
@@ -173,16 +185,28 @@ try:
             # Identify missing packets
             missing_list = []
             for missing_seq in range(tracker.highest_seq + 1, seq):
+                
+                print(f" [!] Gap Detected! ID:{device_id}, Missing packets: {missing_seq}")
+
                 tracker.missing_set.add(missing_seq)
-                missing_list.append(str(missing_seq))
+                
+                srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
+                server_seq+=1
+                srv_payload = str(device_id) +":"+ str(missing_seq)
+                Nack_packet=srv_header+srv_payload.encode('utf-8')
+
+                server_socket.sendto(Nack_packet, addr)
+                print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_seq}")
+
+
+                #missing_list.append(str(missing_seq))
             
-            print(f" [!] Gap Detected! Missing packets: {missing_list}")
             
             # --- SEND NACK TO CLIENT ---
-            if missing_list:
-                nack_msg = f"NACK:{device_id}:" + ",".join(missing_list)                
-                server_socket.sendto(nack_msg.encode('utf-8'), addr)
-                print(f" [<<] Sent NACK request for: {missing_list}")
+            # if missing_list:
+            #     nack_msg = f"NACK:{device_id}:" + ",".join(missing_list)
+            #     server_socket.sendto(nack_msg.encode('utf-8'), addr)
+            #     print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_list}")
 
             tracker.highest_seq = seq
 
@@ -191,14 +215,14 @@ try:
             if seq in tracker.missing_set:
                 # Subcase 3a: Recovered Packet (Was missing)
                 tracker.missing_set.remove(seq)
-                print(f" [+] Recovered packet {seq} (was missing).")
+                print(f" [+] Recovered packet ID:{device_id}, seq:{seq} (was missing).")
             else:
                 # Subcase 3b: True Duplicate -> IGNORE LOGIC
                 duplicate_flag = 1
                 duplicate_count += 1
                 received_count-=1
 
-                print(f" [D] Duplicate detected: {seq}. Content ignored.")
+                print(f" [D] Duplicate detected: ID:{device_id}, seq:{seq}. Content ignored.")
                 # [cite_start]We still log it to CSV to verify duplication behavior [cite: 46]
                 # But you can choose to discard the payload variable if you want "total ignore"
 
@@ -234,11 +258,11 @@ try:
                 save_to_csv(csv_data)
                 
             if gap_flag:
-                print(f" -> DATA received (seq={seq}) with GAP.")
+                print(f" -> DATA received (ID:{device_id}, seq={seq}) with GAP.")
             elif duplicate_flag:
-                print(f" -> DATA received (seq={seq}) DUPLICATE (Ignored).")
+                print(f" -> DATA received (ID:{device_id}, seq={seq}) DUPLICATE (Ignored).")
             else:
-                print(f" -> DATA received (seq={seq})")
+                print(f" -> DATA received (ID:{device_id}, seq={seq})")
                 
         elif header['msg_type'] == MSG_INIT:
             unit = code_to_unit(header['batch_count'])
@@ -269,4 +293,4 @@ except KeyboardInterrupt:
     print(f"Missing packets: {missing_count}")
     print(f"Duplicate packets: {duplicate_count}")
     print(f"Delivery rate: {delivery_rate:.2f}%")
-    #bkrh git
+    

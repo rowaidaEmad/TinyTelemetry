@@ -9,6 +9,7 @@ HEADER_SIZE = 9
 MSG_INIT = 0
 MSG_DATA = 1
 HEART_BEAT = 2
+NACK_MSG = 3
 
 # Units mapping
 UNITS = {

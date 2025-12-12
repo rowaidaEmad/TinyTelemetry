@@ -45,7 +45,7 @@ SERVER_ADDR = ('localhost', 12002)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 running = True
-
+sensors = []   # list of active sensors 
 # HISTORY STORAGE (Key is now (device_id, seq_num) tuple)
 sent_history = {} 
 

@@ -12,7 +12,7 @@ from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, H
 sys.stdout.reconfigure(line_buffering=True)
 SERVER_ID=1
 # --- Server setup ---
-SERVER_PORT = 12001
+SERVER_PORT = 12002
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(('', SERVER_PORT))

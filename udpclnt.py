@@ -28,7 +28,7 @@ if len(sys.argv) > 2:
 else:
     intervals = DEFAULT_INTERVALS
 
-SERVER_ADDR = ('localhost', 12001)
+SERVER_ADDR = ('localhost', 12002)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 running = True

@@ -3,7 +3,7 @@ import time
 
 MAX_BITS = 1600
 MAX_BYTES = MAX_BITS // 8  # 200 bytes total
-HEADER_SIZE = 9  
+HEADER_SIZE = 10 
 
 # Message types
 MSG_INIT = 0
@@ -45,6 +45,35 @@ def code_to_unit(code):
     return "unknown"
 
 
+def build_checksum_header(device_id, batch_count, seq_num, msg_type, payload=None):
+    # 1. Build the base 9-byte header.
+    header = build_header(device_id, batch_count, seq_num, msg_type)
+
+    # 2. Combine header and payload for checksum calculation.
+    # header is already bytes. If payload is None, use empty bytes.
+    # If payload exists, it must be a bytes object for concatenation.
+    if payload is None:
+        data_to_checksum = header
+    else:
+        # Assumes payload is a bytes object (e.g., from struct.pack or .encode()).
+        data_to_checksum = header + payload 
+        
+    # 3. Calculate 1-byte checksum.
+    checksum = ascii_sum_checksum(data_to_checksum) 
+
+    # 4. Repack the base header (9 bytes) along with the new 1-byte checksum.
+    # Total header size is now 9 + 1 = 10 bytes.
+    # We unpack the 9-byte header and prepend the new 1-byte checksum to the *data* it holds.
+    # The simplest way is to just append the checksum byte to the header bytes.
+    
+    # The original struct.pack line was fundamentally wrong:
+    # checksum_header = struct.pack('!B H I B B B', header, checksum)
+    # Easiest fix: append the checksum byte to the existing header bytes.
+    checksum_header = header + struct.pack('!B', checksum) 
+    
+    return checksum_header
+
+
 def build_header(device_id, batch_count, seq_num, msg_type):
     """
     Build a 9-byte header for the UDP IoT protocol (no custom fields).
@@ -73,7 +102,7 @@ def parse_header(data):
     if len(data) < HEADER_SIZE:
         raise ValueError("Invalid packet: too short")
 
-    byte1, seq, timestamp, byte8, ms_low = struct.unpack('!B H I B B', data[:HEADER_SIZE])
+    byte1, seq, timestamp, byte8, ms_low, byte10 = struct.unpack('!B H I B B B', data[:HEADER_SIZE])
 
     device_id = (byte1 >> 4) & 0x0F
     batch_count = byte1 & 0x0F
@@ -81,6 +110,7 @@ def parse_header(data):
     msg_type = (byte8 >> 4) & 0x03
     ms_high = byte8 & 0x03
     milliseconds = (ms_high << 8) | ms_low
+    checksum = (byte10)
 
     return {
         "device_id": device_id,
@@ -90,6 +120,7 @@ def parse_header(data):
         "proto_version": proto_version,
         "msg_type": msg_type,
         "milliseconds": milliseconds,
+        "checksum": checksum,
     }
 
 
@@ -141,3 +172,26 @@ def encrypt_bytes(data: bytes, device_id: int, seq: int) -> bytes:
 def decrypt_bytes(data: bytes, device_id: int, seq: int) -> bytes:
     """Same as `encrypt_bytes` (XOR stream cipher)."""
     return encrypt_bytes(data, device_id, seq)
+
+def ascii_sum_checksum(data):
+    """
+    Simple 1-byte checksum: Sum all ASCII values, mod 256
+    For binary data, treats each byte as a character code (0-255)
+    """
+    total = 0
+    for byte in data:
+        total += byte  # ASCII value of the byte
+    
+    # Return only the lower 8 bits (1 byte)
+    return total & 0xFF
+
+def calculate_expected_checksum(header_data_dict, payload):
+    """
+    Calculates the 1-byte checksum based on the base header contents and payload.
+    """
+    
+    # 2. Concatenate base header and payload bytes.
+    data_to_checksum = header_data_dict + payload
+    
+    # 3. Calculate the 1-byte checksum.
+    return ascii_sum_checksum(data_to_checksum)

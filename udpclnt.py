@@ -4,7 +4,7 @@ import time
 import os
 import sys
 import struct
-from protocol import MAX_BYTES, build_header, MSG_INIT, MSG_DATA, HEART_BEAT, unit_to_code, parse_header, NACK_MSG, HEADER_SIZE, encrypt_bytes
+from protocol import *
 
 # Configurable defaults
 DEFAULT_INTERVAL_DURATION = 20  # total test duration = 60s * 3 intervals
@@ -51,7 +51,7 @@ def send_heartbeat():
         # time.sleep(1)
         #sending heartbeat message for all sensors in text file
         for sensor in sensors:
-            header = build_header(device_id=sensor['device_id'], batch_count=0, seq_num=0, msg_type=HEART_BEAT)
+            header = build_checksum_header(device_id=sensor['device_id'], batch_count=0, seq_num=0, msg_type=HEART_BEAT)
             client_socket.sendto(header, SERVER_ADDR)
             print(f"Sent HEARTBEAT for Device {sensor['device_id']} (seq={sensor['seq_num']})")
             # sensor['seq_num'] += 1
@@ -80,6 +80,20 @@ def receive_nacks():
             
             # The payload is the part of the bytes object after the header
             payload_bytes = data[HEADER_SIZE:]
+
+            received_checksum = header['checksum']
+
+
+            BASE_HEADER_SIZE = 9
+            base_header_bytes = data[:BASE_HEADER_SIZE]
+            calculated_checksum = calculate_expected_checksum(base_header_bytes,payload_bytes)
+
+            checksum_valid = (received_checksum == calculated_checksum)
+
+            if not checksum_valid:
+                print(f"⚠️ Checksum mismatch: received={received_checksum}, calculated={calculated_checksum}")
+                continue
+                        
             payload_str = payload_bytes.decode('utf-8', errors='ignore').strip()
 
             if header['msg_type'] == NACK_MSG:
@@ -116,7 +130,7 @@ def receive_nacks():
                     for sensor in sensors:
                         if sensor['device_id'] == nack_device_id:
                             # We can simply resend the INIT packet (seq=1)
-                            init_header = build_header(
+                            init_header = build_checksum_header(
                                 device_id=sensor['device_id'], 
                                 batch_count=sensor['unit_code'], 
                                 seq_num=1, 
@@ -168,7 +182,7 @@ else:
          # sending init message for all sensoors in text file
         for sensor in sensors:
            
-            header = build_header(device_id=sensor['device_id'], batch_count=sensor['unit_code'], seq_num=sensor['seq_num'], msg_type=MSG_INIT)
+            header = build_checksum_header(device_id=sensor['device_id'], batch_count=sensor['unit_code'], seq_num=sensor['seq_num'], msg_type=MSG_INIT)
             client_socket.sendto(header, SERVER_ADDR)
             print(f"Sent INIT (seq={sensor['seq_num']}, unit={sensor['unit']})")
             sensor['seq_num'] += 1
@@ -202,8 +216,7 @@ else:
                                 # if non-numeric token appears, fallback to 0.0 for that slot
                                 values.append(0.0)
 
-                        header = build_header(device_id=sensor['device_id'], batch_count=batch_count,
-                                              seq_num=sensor['seq_num'], msg_type=MSG_DATA)
+                        
 
                         fmt = '!' + ('d' * len(values))
                         enc_payload = struct.pack(fmt, *values)
@@ -212,6 +225,10 @@ else:
                         # doubles remain 8-byte aligned. Uses device_id & seq
                         enc_payload = encrypt_bytes(enc_payload, sensor['device_id'], sensor['seq_num'])
 
+
+                        header = build_checksum_header(device_id=sensor['device_id'], batch_count=batch_count,
+                                                                    seq_num=sensor['seq_num'], msg_type=MSG_DATA, payload=enc_payload)
+                        
                         packet = header + enc_payload
                         sent_history[(sensor['device_id'], sensor['seq_num'])] = packet
 

@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 import struct
 import threading
-from protocol import MAX_BYTES, HEADER_SIZE, parse_header, MSG_INIT, MSG_DATA, HEART_BEAT, code_to_unit, build_header, NACK_MSG, decrypt_bytes
+from protocol import *
 
 # --- Real-time logging ---
 sys.stdout.reconfigure(line_buffering=True)
@@ -157,11 +157,24 @@ def send_NACK_now(device_id, addr, missing_seq):
     """Builds and sends the NACK packet immediately (used by scheduler)."""
     global server_seq
     
-    srv_header = build_header(device_id=SERVER_ID, batch_count=1, seq_num=server_seq, msg_type = NACK_MSG)
+    # Step 1: Create the payload data as a Python string
+    srv_payload_str = str(device_id) +":"+ str(missing_seq)
+    
+    # Step 2 (FIX): Encode the payload string to bytes BEFORE calling the header function
+    srv_payload_bytes = srv_payload_str.encode('utf-8')
+
+    # Step 3: Call build_checksum_header with the bytes object
+    srv_header = build_checksum_header(
+        device_id=SERVER_ID, 
+        batch_count=1, 
+        seq_num=server_seq, 
+        msg_type = NACK_MSG, 
+        payload=srv_payload_bytes
+    )
     server_seq += 1
     
-    srv_payload = str(device_id) +":"+ str(missing_seq)
-    Nack_packet = srv_header + srv_payload.encode('utf-8')
+    # Step 4: Combine the new header (10 bytes) and the payload bytes
+    Nack_packet = srv_header + srv_payload_bytes
 
     server_socket.sendto(Nack_packet, addr)
     print(f" [<<] Sent NACK request for ID:{device_id}, seq: {missing_seq}")
@@ -222,9 +235,12 @@ init_csv_file()
 trackers = {} 
 received_count = 0
 duplicate_count = 0
-
+corruption_count = 0
 
 threading.Thread(target=nack_scheduler, daemon=True).start()
+
+
+# Assuming ascii_sum_checksum(data_bytes) and build_header(...) are available
 
 try:
     while True:
@@ -238,9 +254,11 @@ try:
         except ValueError as e:
             print("Header error:", e)
             continue
-
         payload_bytes = data[HEADER_SIZE:]
 
+        BASE_HEADER_SIZE = 9
+        base_header_bytes = data[:BASE_HEADER_SIZE]
+        calculated_checksum = calculate_expected_checksum(base_header_bytes, payload_bytes)
         # For DATA messages, payload is binary doubles (8 bytes each)
         if header['msg_type'] == MSG_DATA:
             num = header['batch_count']
@@ -282,6 +300,20 @@ try:
 
         duplicate_flag = 0
         gap_flag = 0
+
+        # --- Checksum validation ---
+        received_checksum = header['checksum']
+
+        checksum_valid = (received_checksum == calculated_checksum)
+        
+        # If checksum is invalid, request retransmission
+        if not checksum_valid:
+            corruption_count += 1
+            print(f"⚠️ Checksum mismatch: received={received_checksum}, calculated={calculated_checksum}")
+            continue
+            # Send retransmit request if we haven't already for this sequence
+
+
         
         # --- LOGIC START ---
 
@@ -399,3 +431,4 @@ except KeyboardInterrupt:
     print(f"Missing packets: {missing_count}")
     print(f"Duplicate packets: {duplicate_count}")
     print(f"Delivery rate: {delivery_rate:.2f}%")
+    

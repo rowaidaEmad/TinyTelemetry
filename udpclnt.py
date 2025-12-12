@@ -246,3 +246,4 @@ print("Test finished. Closing client...")
 running = False
 client_socket.close()
 print("Client finished.")
+#test
